@@ -1,0 +1,623 @@
+<div id="mario-arcade-wrapper" style="width: 100%; max-width: 800px; margin: 15px auto; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+    <style>
+        #mario-game-container {
+            position: relative;
+            width: 100%;
+            height: 480px !important;
+            min-height: 480px !important;
+            border: 4px solid #e52521;
+            border-radius: 14px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+            overflow: hidden;
+            background: #5c94fc;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        #mario-canvas {
+            display: block;
+            width: 100% !important;
+            height: 480px !important;
+        }
+        #mario-hud {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            right: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: none;
+            font-weight: 900;
+            z-index: 5;
+        }
+        .mario-hud-box {
+            background: rgba(0, 0, 0, 0.75);
+            padding: 6px 12px;
+            border-radius: 10px;
+            border: 2px solid #fbd000;
+            font-size: 13px;
+            color: #ffffff;
+        }
+        #mario-score-display { font-size: 19px; color: #fbd000; }
+        #mario-flash-overlay {
+            position: absolute;
+            inset: 0;
+            background: #ffffff;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 4;
+            transition: opacity 0.3s ease-out;
+        }
+        .mario-overlay-screen {
+            position: absolute;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.88);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+            z-index: 20;
+        }
+        .mario-hidden { display: none !important; }
+        .mario-title {
+            font-size: 30px !important;
+            font-weight: 900 !important;
+            text-transform: uppercase;
+            margin: 0 0 12px 0 !important;
+            text-shadow: 3px 3px 0 #000, 0 0 15px #e52521;
+            color: #fbd000 !important;
+        }
+        .mario-instructions {
+            font-size: 14px !important;
+            color: #f1f5f9 !important;
+            margin: 0 0 22px 0 !important;
+            line-height: 1.6 !important;
+        }
+        .mario-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            width: 100%;
+            max-width: 350px;
+            margin-bottom: 22px;
+        }
+        .mario-stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid #fbd000;
+            border-radius: 10px;
+            padding: 10px 5px;
+        }
+        .mario-stat-label { font-size: 11px; color: #cbd5e1; text-transform: uppercase; }
+        .mario-stat-value { font-size: 20px; font-weight: 900; margin-top: 4px; color: #ffffff; }
+        .mario-btn {
+            width: 100%;
+            max-width: 290px;
+            padding: 15px 20px !important;
+            border: none;
+            border-radius: 12px !important;
+            font-size: 15px !important;
+            font-weight: 900 !important;
+            text-transform: uppercase;
+            cursor: pointer;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 30;
+        }
+        .mario-btn-play {
+            background: #e52521 !important;
+            color: #ffffff !important;
+            border: 2px solid #fbd000 !important;
+            box-shadow: 0 4px 0 #7f1d1d;
+        }
+        .mario-btn-whatsapp {
+            background: #25D366 !important;
+            color: #ffffff !important;
+        }
+    </style>
+
+    <div id="mario-game-container">
+        <div id="mario-flash-overlay"></div>
+        
+        <div id="mario-hud">
+            <div class="mario-hud-box">🏆 <span id="mario-hud-best">0</span></div>
+            <div class="mario-hud-box" id="mario-score-display">0</div>
+            <div class="mario-hud-box" style="color:#fbd000;">🪙 <span id="mario-hud-coins">0</span> | 🔥 <span id="mario-hud-streak">1</span>j</div>
+        </div>
+
+        <canvas id="mario-canvas"></canvas>
+
+        <!-- Écran d'accueil -->
+        <div id="mario-start-screen" class="mario-overlay-screen">
+            <div class="mario-title">🍄 SUPER MARIO RUN</div>
+            <p class="mario-instructions">
+                👆 <b>Clic / Tap court :</b> Sauter (x2 Double Saut)<br>
+                👇 <b>Maintenir appuyé :</b> Glisser sous les Bill Balles<br>
+                🦶 <b>Saute sur les Goombas</b> pour les écraser (+100 pts) !
+            </p>
+            <button type="button" class="mario-btn mario-btn-play" onclick="window.startMarioGame()">LET'S GO ! (JOUER)</button>
+        </div>
+
+        <!-- Écran Game Over -->
+        <div id="mario-gameover-screen" class="mario-overlay-screen mario-hidden">
+            <div class="mario-title" style="color: #e52521 !important;">GAME OVER !</div>
+            <div class="mario-stats-grid">
+                <div class="mario-stat-card">
+                    <div class="mario-stat-label">Score</div>
+                    <div class="mario-stat-value" id="mario-final-score">0</div>
+                </div>
+                <div class="mario-stat-card">
+                    <div class="mario-stat-label">Record</div>
+                    <div class="mario-stat-value" id="mario-final-best" style="color: #fbd000;">0</div>
+                </div>
+                <div class="mario-stat-card">
+                    <div class="mario-stat-label">Série</div>
+                    <div class="mario-stat-value" style="color: #fbd000;">🔥 <span id="mario-final-streak">1</span>j</div>
+                </div>
+            </div>
+            <button type="button" class="mario-btn mario-btn-play" onclick="window.startMarioGame()">REJOUER</button>
+            <button type="button" class="mario-btn mario-btn-whatsapp" onclick="window.shareMarioScore()">📲 DÉFIER UN AMI SUR WHATSAPP</button>
+        </div>
+    </div>
+
+    <script>
+        var marioAudioCtx = null;
+        var marioIsPlaying = false;
+        var marioScore = 0;
+        var marioCoinCount = 0;
+        var marioGameSpeed = 6.2;
+        var marioFrameCount = 0;
+        var marioShakeTime = 0;
+        var marioLastSpeedIncrease = 0;
+        var marioGroundY = 426;
+        var marioWorldIndex = 0;
+        var marioObstacles = [];
+        var marioCoins = [];
+        var marioParticles = [];
+        var marioHoldTimer = null;
+        var marioNextSpawnFrame = 70;
+
+        var marioBestScore = parseInt(localStorage.getItem('marioRunner_best')) || 0;
+        var marioStreak = parseInt(localStorage.getItem('marioRunner_streak')) || 1;
+        var marioToday = new Date().toDateString();
+        var marioLastPlayed = localStorage.getItem('marioRunner_lastDate');
+
+        if (marioLastPlayed && marioLastPlayed !== marioToday) {
+            var yest = new Date();
+            yest.setDate(yest.getDate() - 1);
+            marioStreak = (marioLastPlayed === yest.toDateString()) ? marioStreak + 1 : 1;
+        }
+        localStorage.setItem('marioRunner_lastDate', marioToday);
+        localStorage.setItem('marioRunner_streak', marioStreak);
+
+        var marioWorlds = [
+            { sky: '#5c94fc', hill: '#00a800', groundTop: '#43b047', groundBase: '#c84c0c', border: '#e52521' },
+            { sky: '#000000', hill: '#003838', groundTop: '#008888', groundBase: '#004848', border: '#00f3ff' },
+            { sky: '#f87858', hill: '#a82800', groundTop: '#fbd000', groundBase: '#881400', border: '#fbd000' },
+            { sky: '#1a0505', hill: '#4a0e0e', groundTop: '#7f1d1d', groundBase: '#333333', border: '#ff2a6d' }
+        ];
+
+        var marioPlayer = {
+            x: 65, y: 382, baseW: 34, baseH: 44, w: 34, h: 44,
+            vy: 0, gravity: 0.72, jumpForce: -13.2, jumps: 0, maxJumps: 2, isSliding: false
+        };
+
+        var marioClouds = [
+            { x: 120, y: 65, s: 1 },
+            { x: 380, y: 45, s: 0.8 },
+            { x: 640, y: 80, s: 1.2 }
+        ];
+
+        function marioPlaySound(type) {
+            try {
+                if (!marioAudioCtx) {
+                    var AC = window.AudioContext || window.webkitAudioContext;
+                    marioAudioCtx = new AC();
+                }
+                if (marioAudioCtx.state === 'suspended') marioAudioCtx.resume();
+                var osc = marioAudioCtx.createOscillator();
+                var gain = marioAudioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(marioAudioCtx.destination);
+                var now = marioAudioCtx.currentTime;
+
+                if (type === 'jump') {
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(240, now);
+                    osc.frequency.exponentialRampToValueAtTime(620, now + 0.14);
+                    gain.gain.setValueAtTime(0.11, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.14);
+                    osc.start(now); osc.stop(now + 0.14);
+                } else if (type === 'coin') {
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(987.77, now);
+                    osc.frequency.setValueAtTime(1318.51, now + 0.07);
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now); osc.stop(now + 0.25);
+                } else if (type === 'stomp') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(300, now);
+                    osc.frequency.exponentialRampToValueAtTime(100, now + 0.12);
+                    gain.gain.setValueAtTime(0.18, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+                    osc.start(now); osc.stop(now + 0.12);
+                } else if (type === 'levelup') {
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(523.25, now);
+                    osc.frequency.setValueAtTime(659.25, now + 0.08);
+                    osc.frequency.setValueAtTime(783.99, now + 0.16);
+                    gain.gain.setValueAtTime(0.13, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                    osc.start(now); osc.stop(now + 0.35);
+                } else if (type === 'crash') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(320, now);
+                    osc.frequency.exponentialRampToValueAtTime(90, now + 0.45);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+                    osc.start(now); osc.stop(now + 0.45);
+                }
+            } catch (e) {}
+        }
+
+        function marioSpawnParticles(x, y, count, color) {
+            for (var i = 0; i < count; i++) {
+                marioParticles.push({
+                    x: x, y: y,
+                    vx: (Math.random() - 0.5) * 6 - 2,
+                    vy: (Math.random() - 0.5) * 6,
+                    life: 1, color: color
+                });
+            }
+        }
+
+        function marioTriggerJump() {
+            if (!marioIsPlaying) return;
+            if (marioPlayer.isSliding) marioStopSlide();
+            if (marioPlayer.jumps < marioPlayer.maxJumps) {
+                marioPlayer.vy = marioPlayer.jumpForce;
+                marioPlayer.jumps++;
+                marioPlaySound('jump');
+                marioSpawnParticles(marioPlayer.x + marioPlayer.w / 2, marioPlayer.y + marioPlayer.h, 8, '#fbd000');
+            }
+        }
+
+        function marioStartSlide() {
+            if (!marioIsPlaying) return;
+            marioPlayer.isSliding = true;
+            marioPlayer.h = 24;
+            marioPlayer.w = 40;
+            if (marioPlayer.y + marioPlayer.h < marioGroundY) marioPlayer.vy += 8;
+            else marioPlayer.y = marioGroundY - marioPlayer.h;
+        }
+
+        function marioStopSlide() {
+            if (!marioPlayer.isSliding) return;
+            marioPlayer.isSliding = false;
+            marioPlayer.h = marioPlayer.baseH;
+            marioPlayer.w = marioPlayer.baseW;
+            if (marioPlayer.y + marioPlayer.h > marioGroundY) marioPlayer.y = marioGroundY - marioPlayer.h;
+        }
+
+        window.startMarioGame = function() {
+            var container = document.getElementById('mario-game-container');
+            var canvas = document.getElementById('mario-canvas');
+            canvas.width = container.clientWidth || 800;
+            canvas.height = 480;
+
+            document.getElementById('mario-hud-best').textContent = marioBestScore;
+            document.getElementById('mario-hud-streak').textContent = marioStreak;
+
+            marioGroundY = canvas.height - 54;
+            marioPlayer.y = marioGroundY - marioPlayer.baseH;
+            marioPlayer.vy = 0;
+            marioPlayer.jumps = 0;
+            marioPlayer.isSliding = false;
+            marioPlayer.w = marioPlayer.baseW;
+            marioPlayer.h = marioPlayer.baseH;
+
+            marioObstacles = [];
+            marioCoins = [];
+            marioParticles = [];
+            marioScore = 0;
+            marioCoinCount = 0;
+            marioGameSpeed = 6.2;
+            marioFrameCount = 0;
+            marioNextSpawnFrame = 70;
+            marioShakeTime = 0;
+            marioLastSpeedIncrease = performance.now();
+            marioWorldIndex = 0;
+
+            container.style.borderColor = marioWorlds[0].border;
+            container.style.background = marioWorlds[0].sky;
+
+            document.getElementById('mario-score-display').textContent = '0';
+            document.getElementById('mario-hud-coins').textContent = '0';
+            document.getElementById('mario-start-screen').classList.add('mario-hidden');
+            document.getElementById('mario-gameover-screen').classList.add('mario-hidden');
+
+            marioIsPlaying = true;
+            marioPlaySound('jump');
+            requestAnimationFrame(marioGameLoop);
+        };
+
+        window.shareMarioScore = function() {
+            var message = "🍄 J'ai fait " + marioScore + " points sur SUPER MARIO RUN ! Essaie de battre mon record ici : " + window.location.href;
+            window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent(message), "_blank");
+        };
+
+        function marioDrawCharacter(ctx, x, y, w, h, isJumping, isSliding, frame) {
+            ctx.save();
+            ctx.translate(x, y);
+            if (isSliding) {
+                ctx.fillStyle = '#e52521'; ctx.fillRect(4, 0, 26, 7); ctx.fillRect(18, 4, 18, 4);
+                ctx.fillStyle = '#ffcc99'; ctx.fillRect(6, 7, 22, 9);
+                ctx.fillStyle = '#3b1d08'; ctx.fillRect(20, 11, 10, 3);
+                ctx.fillStyle = '#049cd8'; ctx.fillRect(4, 15, 28, 9);
+                ctx.fillStyle = '#fbd000'; ctx.fillRect(22, 17, 3, 3);
+                ctx.restore();
+                return;
+            }
+            var legOffset = isJumping ? 4 : Math.sin(frame * 0.35) * 5;
+            ctx.fillStyle = '#6b2c09';
+            ctx.fillRect(4 + legOffset, h - 7, 11, 7);
+            ctx.fillRect(18 - legOffset, h - 7, 11, 7);
+            ctx.fillStyle = '#e52521'; ctx.fillRect(4, 18, w - 8, 13);
+            ctx.fillStyle = '#049cd8'; ctx.fillRect(7, 21, w - 14, 16);
+            ctx.fillRect(9, 18, 4, 5); ctx.fillRect(21, 18, 4, 5);
+            ctx.fillStyle = '#fbd000'; ctx.fillRect(10, 24, 3, 3); ctx.fillRect(21, 24, 3, 3);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(1 - legOffset * 0.4, 24, 6, 6);
+            ctx.fillRect(w - 7 + legOffset * 0.4, 24, 6, 6);
+            ctx.fillStyle = '#ffcc99'; ctx.fillRect(7, 7, 20, 12); ctx.fillRect(25, 11, 5, 4);
+            ctx.fillStyle = '#3b1d08'; ctx.fillRect(6, 9, 4, 7); ctx.fillRect(19, 14, 10, 3);
+            ctx.fillStyle = '#000000'; ctx.fillRect(21, 9, 2, 4);
+            ctx.fillStyle = '#e52521'; ctx.fillRect(6, 1, 21, 7); ctx.fillRect(14, 5, 18, 3);
+            ctx.fillStyle = '#ffffff'; ctx.fillRect(17, 2, 5, 4);
+            ctx.restore();
+        }
+
+        function marioDrawObstacle(ctx, obs, frame) {
+            if (obs.type === 'pipe') {
+                ctx.fillStyle = '#00a800'; ctx.fillRect(obs.x + 3, obs.y + 12, obs.w - 6, obs.h - 12);
+                ctx.fillStyle = '#80d010'; ctx.fillRect(obs.x + 7, obs.y + 12, 5, obs.h - 12);
+                ctx.fillStyle = '#00a800'; ctx.fillRect(obs.x, obs.y, obs.w, 12);
+                ctx.fillStyle = '#80d010'; ctx.fillRect(obs.x + 4, obs.y + 2, 6, 8);
+                ctx.strokeStyle = '#000000'; ctx.lineWidth = 2;
+                ctx.strokeRect(obs.x, obs.y, obs.w, 12);
+                ctx.strokeRect(obs.x + 3, obs.y + 12, obs.w - 6, obs.h - 12);
+            } else if (obs.type === 'goomba') {
+                var walk = Math.sin(frame * 0.25) * 3;
+                ctx.fillStyle = '#c84c0c';
+                ctx.beginPath(); ctx.arc(obs.x + obs.w / 2, obs.y + 14, 15, Math.PI, 0);
+                ctx.lineTo(obs.x + obs.w, obs.y + 20); ctx.lineTo(obs.x, obs.y + 20); ctx.fill();
+                ctx.fillStyle = '#fcbcb0'; ctx.fillRect(obs.x + 7, obs.y + 18, obs.w - 14, 8);
+                ctx.fillStyle = '#ffffff'; ctx.fillRect(obs.x + 8, obs.y + 10, 5, 7); ctx.fillRect(obs.x + 17, obs.y + 10, 5, 7);
+                ctx.fillStyle = '#000000'; ctx.fillRect(obs.x + 10, obs.y + 12, 2, 4); ctx.fillRect(obs.x + 18, obs.y + 12, 2, 4);
+                ctx.fillRect(obs.x + 3 + walk, obs.y + 25, 9, 6); ctx.fillRect(obs.x + 18 - walk, obs.y + 25, 9, 6);
+            } else if (obs.type === 'bullet') {
+                ctx.fillStyle = '#111111';
+                ctx.beginPath(); ctx.arc(obs.x + 12, obs.y + obs.h / 2, obs.h / 2, Math.PI / 2, Math.PI * 1.5);
+                ctx.lineTo(obs.x + obs.w, obs.y); ctx.lineTo(obs.x + obs.w, obs.y + obs.h); ctx.fill();
+                ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(obs.x + 13, obs.y + 9, 4, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#000000'; ctx.fillRect(obs.x + 10, obs.y + 8, 3, 3);
+                ctx.fillStyle = '#ffffff'; ctx.fillRect(obs.x + 22, obs.y + 12, 8, 5);
+            }
+        }
+
+        function marioGameLoop(timestamp) {
+            if (!marioIsPlaying) return;
+            var canvas = document.getElementById('mario-canvas');
+            var ctx = canvas.getContext('2d');
+            var container = document.getElementById('mario-game-container');
+            var flashOverlay = document.getElementById('mario-flash-overlay');
+
+            marioFrameCount++;
+            marioGroundY = canvas.height - 54;
+
+            if (timestamp - marioLastSpeedIncrease > 10000) {
+                marioGameSpeed += 0.6;
+                marioLastSpeedIncrease = timestamp;
+            }
+
+            marioScore += Math.floor(marioGameSpeed * 0.15);
+            document.getElementById('mario-score-display').textContent = marioScore;
+
+            var targetWorld = Math.floor(marioScore / 500) % marioWorlds.length;
+            if (targetWorld !== marioWorldIndex) {
+                marioWorldIndex = targetWorld;
+                var nw = marioWorlds[marioWorldIndex];
+                container.style.borderColor = nw.border;
+                container.style.background = nw.sky;
+                flashOverlay.style.opacity = '0.6';
+                marioPlaySound('levelup');
+                setTimeout(function() { flashOverlay.style.opacity = '0'; }, 130);
+            }
+
+            var w = marioWorlds[marioWorldIndex];
+            marioPlayer.vy += marioPlayer.gravity;
+            marioPlayer.y += marioPlayer.vy;
+
+            if (marioPlayer.y + marioPlayer.h >= marioGroundY) {
+                marioPlayer.y = marioGroundY - marioPlayer.h;
+                marioPlayer.vy = 0;
+                marioPlayer.jumps = 0;
+            }
+
+            if (marioFrameCount >= marioNextSpawnFrame) {
+                var rand = Math.random();
+                if (rand < 0.32 && marioScore > 80) {
+                    marioObstacles.push({ x: canvas.width + 20, y: marioGroundY - 54, w: 42, h: 24, type: 'bullet' });
+                } else if (rand < 0.68) {
+                    var height = Math.random() > 0.65 ? 54 : 38;
+                    marioObstacles.push({ x: canvas.width + 20, y: marioGroundY - height, w: 36, h: height, type: 'pipe' });
+                } else {
+                    marioObstacles.push({ x: canvas.width + 20, y: marioGroundY - 31, w: 30, h: 31, type: 'goomba' });
+                }
+                if (Math.random() > 0.35) {
+                    var coinY = marioGroundY - (Math.random() > 0.5 ? 85 : 35);
+                    for (var k = 0; k < 3; k++) {
+                        marioCoins.push({ x: canvas.width + 80 + k * 26, y: coinY, r: 10, collected: false });
+                    }
+                }
+                var minGap = Math.max(46, Math.floor(95 - marioGameSpeed * 3));
+                marioNextSpawnFrame = marioFrameCount + minGap + Math.floor(Math.random() * 35);
+            }
+
+            ctx.save();
+            if (marioShakeTime > 0) {
+                ctx.translate((Math.random() - 0.5) * 12, (Math.random() - 0.5) * 12);
+                marioShakeTime--;
+            }
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+            for (var cIdx = 0; cIdx < marioClouds.length; cIdx++) {
+                var cl = marioClouds[cIdx];
+                cl.x -= marioGameSpeed * 0.2;
+                if (cl.x < -80) cl.x = canvas.width + 60;
+                ctx.beginPath();
+                ctx.arc(cl.x, cl.y, 18 * cl.s, 0, Math.PI * 2);
+                ctx.arc(cl.x + 18 * cl.s, cl.y - 6 * cl.s, 22 * cl.s, 0, Math.PI * 2);
+                ctx.arc(cl.x + 38 * cl.s, cl.y, 18 * cl.s, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            ctx.fillStyle = w.hill;
+            var hillSpacing = 260;
+            var hillOffset = (marioFrameCount * marioGameSpeed * 0.35) % hillSpacing;
+            for (var hx = -hillOffset; hx < canvas.width + hillSpacing; hx += hillSpacing) {
+                ctx.beginPath(); ctx.arc(hx, marioGroundY, 65, Math.PI, 0); ctx.fill();
+            }
+
+            ctx.fillStyle = w.groundBase;
+            ctx.fillRect(0, marioGroundY, canvas.width, canvas.height - marioGroundY);
+            ctx.fillStyle = w.groundTop;
+            ctx.fillRect(0, marioGroundY, canvas.width, 12);
+
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.35)';
+            ctx.lineWidth = 2;
+            var brickW = 32;
+            var brickOffset = (marioFrameCount * marioGameSpeed) % brickW;
+            for (var bx = -brickOffset; bx < canvas.width; bx += brickW) {
+                ctx.strokeRect(bx, marioGroundY + 12, brickW, 20);
+                ctx.strokeRect(bx + 16, marioGroundY + 32, brickW, 22);
+            }
+
+            marioDrawCharacter(ctx, marioPlayer.x, marioPlayer.y, marioPlayer.w, marioPlayer.h, marioPlayer.jumps > 0, marioPlayer.isSliding, marioFrameCount);
+
+            for (var i = marioCoins.length - 1; i >= 0; i--) {
+                var c = marioCoins[i];
+                c.x -= marioGameSpeed;
+                if (!c.collected && marioPlayer.x < c.x + c.r && marioPlayer.x + marioPlayer.w > c.x - c.r &&
+                    marioPlayer.y < c.y + c.r && marioPlayer.y + marioPlayer.h > c.y - c.r) {
+                    c.collected = true;
+                    marioScore += 50;
+                    marioCoinCount++;
+                    document.getElementById('mario-hud-coins').textContent = marioCoinCount;
+                    marioPlaySound('coin');
+                    marioSpawnParticles(c.x, c.y, 10, '#fbd000');
+                    marioCoins.splice(i, 1);
+                    continue;
+                }
+                var spinW = Math.max(3, Math.abs(Math.sin(marioFrameCount * 0.12)) * c.r);
+                ctx.fillStyle = '#fbd000';
+                ctx.beginPath(); ctx.ellipse(c.x, c.y, spinW, c.r, 0, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = '#b45309'; ctx.lineWidth = 1.5; ctx.stroke();
+                if (c.x < -20) marioCoins.splice(i, 1);
+            }
+
+            for (var j = marioObstacles.length - 1; j >= 0; j--) {
+                var obs = marioObstacles[j];
+                obs.x -= obs.type === 'goomba' ? marioGameSpeed * 1.15 : marioGameSpeed;
+                marioDrawObstacle(ctx, obs, marioFrameCount);
+
+                var pad = 4;
+                if (marioPlayer.x + pad < obs.x + obs.w - pad &&
+                    marioPlayer.x + marioPlayer.w - pad > obs.x + pad &&
+                    marioPlayer.y + pad < obs.y + obs.h - pad &&
+                    marioPlayer.y + marioPlayer.h - pad > obs.y + pad) {
+
+                    if (obs.type === 'goomba' && marioPlayer.vy > 0 && (marioPlayer.y + marioPlayer.h - marioPlayer.vy) <= obs.y + 14) {
+                        marioPlayer.vy = -10.5;
+                        marioScore += 100;
+                        marioPlaySound('stomp');
+                        marioSpawnParticles(obs.x + obs.w / 2, obs.y + obs.h / 2, 14, '#c84c0c');
+                        marioObstacles.splice(j, 1);
+                        continue;
+                    }
+
+                    marioIsPlaying = false;
+                    marioShakeTime = 15;
+                    marioPlaySound('crash');
+                    if (marioScore > marioBestScore) {
+                        marioBestScore = marioScore;
+                        localStorage.setItem('marioRunner_best', marioBestScore);
+                    }
+                    document.getElementById('mario-hud-best').textContent = marioBestScore;
+                    document.getElementById('mario-final-score').textContent = marioScore;
+                    document.getElementById('mario-final-best').textContent = marioBestScore;
+                    document.getElementById('mario-final-streak').textContent = marioStreak;
+                    setTimeout(function() {
+                        document.getElementById('mario-gameover-screen').classList.remove('mario-hidden');
+                    }, 250);
+                    ctx.restore();
+                    return;
+                }
+                if (obs.x + obs.w < -40) marioObstacles.splice(j, 1);
+            }
+
+            for (var pIdx = marioParticles.length - 1; pIdx >= 0; pIdx--) {
+                var pt = marioParticles[pIdx];
+                pt.x += pt.vx; pt.y += pt.vy; pt.life -= 0.045;
+                if (pt.life <= 0) { marioParticles.splice(pIdx, 1); continue; }
+                ctx.globalAlpha = pt.life;
+                ctx.fillStyle = pt.color;
+                ctx.fillRect(pt.x, pt.y, 5, 5);
+                ctx.globalAlpha = 1;
+            }
+
+            ctx.restore();
+            requestAnimationFrame(marioGameLoop);
+        }
+
+        var gameBox = document.getElementById('mario-game-container');
+        gameBox.addEventListener('mousedown', function(e) {
+            if (e.target.tagName === 'BUTTON') return;
+            marioTriggerJump();
+            marioHoldTimer = setTimeout(marioStartSlide, 160);
+        });
+        window.addEventListener('mouseup', function() {
+            clearTimeout(marioHoldTimer);
+            marioStopSlide();
+        });
+        gameBox.addEventListener('touchstart', function(e) {
+            if (e.target.tagName === 'BUTTON') return;
+            e.preventDefault();
+            marioTriggerJump();
+            marioHoldTimer = setTimeout(marioStartSlide, 160);
+        }, { passive: false });
+        gameBox.addEventListener('touchend', function(e) {
+            if (e.target.tagName === 'BUTTON') return;
+            e.preventDefault();
+            clearTimeout(marioHoldTimer);
+            marioStopSlide();
+        }, { passive: false });
+        window.addEventListener('keydown', function(e) {
+            if (marioIsPlaying && (e.code === 'Space' || e.code === 'ArrowUp')) {
+                e.preventDefault();
+                marioTriggerJump();
+            }
+            if (marioIsPlaying && e.code === 'ArrowDown') {
+                e.preventDefault();
+                marioStartSlide();
+            }
+        });
+        window.addEventListener('keyup', function(e) {
+            if (e.code === 'ArrowDown') marioStopSlide();
+        });
+    </script>
+</div>
