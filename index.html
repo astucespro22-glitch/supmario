@@ -39,7 +39,7 @@
   .badge {
     background: rgba(15, 23, 42, 0.85);
     color: #fff;
-    padding: 6px 13px;
+    padding: 6px 12px;
     border-radius: 30px;
     font-weight: 800;
     font-size: clamp(12px, 3vw, 15px);
@@ -53,9 +53,25 @@
     font-size: clamp(18px, 4vw, 24px);
     color: #facc15;
   }
+  #phase-badge {
+    position: absolute;
+    top: 54px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 23, 42, 0.88);
+    color: #4ade80;
+    border: 1.5px solid #4ade80;
+    font-weight: 900;
+    font-size: 12px;
+    padding: 4px 14px;
+    border-radius: 20px;
+    z-index: 10;
+    pointer-events: none;
+    white-space: nowrap;
+  }
   #star-banner {
     position: absolute;
-    top: 56px;
+    top: 86px;
     left: 50%;
     transform: translateX(-50%);
     background: linear-gradient(90deg, #facc15, #f97316, #ec4899);
@@ -72,7 +88,7 @@
   .overlay {
     position: absolute;
     inset: 0;
-    background: rgba(15, 23, 42, 0.9);
+    background: rgba(15, 23, 42, 0.92);
     backdrop-filter: blur(5px);
     display: flex;
     flex-direction: column;
@@ -80,27 +96,50 @@
     align-items: center;
     text-align: center;
     color: white;
-    padding: 18px;
+    padding: 16px;
     z-index: 20;
+    overflow-y: auto;
   }
   .hidden { display: none !important; }
   h1 {
-    font-size: clamp(24px, 5.5vw, 44px);
+    font-size: clamp(22px, 5vw, 40px);
     color: #facc15;
     text-shadow: 0 4px 0 #b91c1c, 0 8px 15px rgba(0,0,0,0.6);
     margin-bottom: 10px;
   }
-  p.subtitle {
-    font-size: clamp(13px, 3vw, 16px);
-    color: #cbd5e1;
-    max-width: 520px;
-    margin-bottom: 16px;
-    line-height: 1.5;
+  .howto-card {
+    background: rgba(30, 41, 59, 0.9);
+    border: 2px solid rgba(250, 204, 21, 0.55);
+    border-radius: 16px;
+    padding: 12px 16px;
+    max-width: 480px;
+    width: 100%;
+    margin-bottom: 14px;
+    text-align: left;
   }
+  .howto-title {
+    font-size: 13px;
+    font-weight: 900;
+    color: #facc15;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    text-align: center;
+  }
+  .howto-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: clamp(12px, 2.9vw, 14px);
+    color: #e2e8f0;
+    line-height: 1.35;
+  }
+  .howto-list li b { color: #fff; }
   .skin-selector {
     display: flex;
-    gap: 10px;
-    margin-bottom: 18px;
+    gap: 8px;
+    margin-bottom: 14px;
     flex-wrap: wrap;
     justify-content: center;
   }
@@ -108,9 +147,9 @@
     background: rgba(255,255,255,0.1);
     border: 2px solid #475569;
     color: #fff;
-    padding: 8px 14px;
+    padding: 7px 12px;
     border-radius: 12px;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 700;
     cursor: pointer;
   }
@@ -122,8 +161,8 @@
     background: linear-gradient(180deg, #ef4444 0%, #b91c1c 100%);
     color: white;
     border: 3px solid #facc15;
-    padding: 13px 32px;
-    font-size: clamp(16px, 4vw, 20px);
+    padding: 12px 30px;
+    font-size: clamp(15px, 3.8vw, 19px);
     font-weight: 900;
     border-radius: 50px;
     cursor: pointer;
@@ -135,14 +174,14 @@
     background: linear-gradient(180deg, #22c55e 0%, #15803d 100%);
     border-color: #bbf7d0;
     box-shadow: 0 5px 0 #14532d;
-    font-size: clamp(13px, 3.2vw, 15px);
-    padding: 11px 22px;
+    font-size: clamp(12px, 3vw, 14px);
+    padding: 10px 20px;
     margin-top: 12px;
   }
   .stats-grid {
     display: flex;
     gap: 10px;
-    margin-bottom: 18px;
+    margin-bottom: 16px;
   }
   .stat-card {
     background: rgba(255,255,255,0.1);
@@ -174,6 +213,7 @@
     <div class="badge score-box"><span id="current-score">0</span></div>
     <div class="badge">🪙 <span id="coin-count">0</span> | 🔥 <span id="streak-count">1</span>j</div>
   </div>
+  <div id="phase-badge">🟢 FACILE • 00:00</div>
   <div id="star-banner" class="hidden">⭐ MODE ÉTOILE INVINCIBLE ! ⭐</div>
 
   <canvas id="gameCanvas"></canvas>
@@ -181,11 +221,15 @@
 
   <div id="start-screen" class="overlay">
     <h1>🍄 SUPER MARIO RUN</h1>
-    <p class="subtitle">
-      👆 <b>Tap / Clic</b> : Sauter (x2 Double Saut) • 👇 <b>Maintenir</b> : Glisser<br>
-      🐢 <b>Saute sur les Tortues</b> pour lancer leur carapace !<br>
-      ⭐ Attrape l'<b>Étoile</b> pour tout détruire sur ton passage !
-    </p>
+    <div class="howto-card">
+      <div class="howto-title">📋 Comment jouer (Mode d'emploi)</div>
+      <ul class="howto-list">
+        <li>👆 <b>Sauter :</b> Tape sur l'écran (ou touche <b>Espace</b>). Tape 2 fois pour faire un <b>Double Saut</b>.</li>
+        <li>👇 <b>Glisser :</b> Maintiens le doigt appuyé (ou <b>Flèche Bas</b>) pour passer sous les missiles.</li>
+        <li>👟 <b>Attaquer :</b> Saute sur la tête des Goombas et Tortues (+100 pts) et attrape l'<b>Étoile ⭐</b> pour devenir invincible.</li>
+        <li>⏱️ <b>Progression :</b> 1 min <b>Facile</b> $\rightarrow$ 2 min <b>Moyen</b> $\rightarrow$ puis mode <b>Rapide</b> !</li>
+      </ul>
+    </div>
     <div class="skin-selector">
       <button class="skin-btn active" id="skin-classic">🔴 Mario Classique</button>
       <button class="skin-btn" id="skin-fire">🔥 Mario Feu (🔒 Inviter 1 ami)</button>
@@ -201,12 +245,12 @@
         <div class="stat-val" id="final-score" style="color:#fff;">0</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Record</div>
-        <div class="stat-val" id="final-best">0</div>
+        <div class="stat-label">Temps</div>
+        <div class="stat-val" id="final-time" style="color:#38bdf8;">00:00</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Série</div>
-        <div class="stat-val">🔥 <span id="final-streak">1</span>j</div>
+        <div class="stat-label">Record</div>
+        <div class="stat-val" id="final-best">0</div>
       </div>
     </div>
     <button class="btn" id="restart-btn">REJOUER</button>
@@ -274,18 +318,29 @@ function playSound(type) {
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-const VIRTUAL_HEIGHT = 500;
-const GROUND_Y = 415;
 let scaleFactor = 1;
 let virtualWidth = 800;
+let virtualHeight = 500;
+let groundY = 415;
 
 function resizeCanvas() {
   const rect = canvas.parentElement.getBoundingClientRect();
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   canvas.width = rect.width * dpr;
   canvas.height = rect.height * dpr;
-  scaleFactor = canvas.height / VIRTUAL_HEIGHT;
-  virtualWidth = canvas.width / scaleFactor;
+
+  const isPortraitMobile = rect.width < 650 && rect.height > rect.width;
+  if (isPortraitMobile) {
+    virtualWidth = 430;
+    scaleFactor = canvas.width / virtualWidth;
+    virtualHeight = canvas.height / scaleFactor;
+  } else {
+    virtualHeight = 460;
+    scaleFactor = canvas.height / virtualHeight;
+    virtualWidth = canvas.width / scaleFactor;
+  }
+
+  groundY = virtualHeight - 75;
   ctx.setTransform(scaleFactor, 0, 0, scaleFactor, 0, 0);
 }
 window.addEventListener('resize', resizeCanvas);
@@ -295,9 +350,12 @@ let gameState = 'START';
 let score = 0;
 let coins = 0;
 let bestScore = parseInt(localStorage.getItem('mario_best')) || 0;
-let gameSpeed = 6.5;
+let gameSpeed = 4.4;
 let frameCount = 0;
 let starTimer = 0;
+let startTime = 0;
+let elapsedSeconds = 0;
+let difficultyStage = 'EASY';
 
 let fireUnlocked = localStorage.getItem('mario_fire_unlocked') === 'true';
 let currentSkin = localStorage.getItem('mario_skin') || 'classic';
@@ -343,14 +401,18 @@ const currentStreak = updateStreak();
 document.getElementById('best-score').textContent = bestScore;
 document.getElementById('streak-count').textContent = currentStreak;
 
+const MARIO_W = 62;
+const MARIO_H = 82;
+const MARIO_DUCK_H = 44;
+
 const mario = {
-  x: 70,
-  y: GROUND_Y - 64,
-  w: 48,
-  h: 64,
+  x: 45,
+  y: groundY - MARIO_H,
+  w: MARIO_W,
+  h: MARIO_H,
   vy: 0,
   gravity: 0.72,
-  jumpForce: -14.5,
+  jumpForce: -15.8,
   jumpsLeft: 2,
   isDucking: false,
   runFrame: 0,
@@ -360,27 +422,27 @@ const mario = {
       this.vy = this.jumpForce;
       this.jumpsLeft--;
       this.isDucking = false;
-      this.h = 64;
+      this.h = MARIO_H;
       playSound('jump');
     }
   },
   duck(active) {
-    if (this.y + this.h >= GROUND_Y - 5) {
+    if (this.y + this.h >= groundY - 5) {
       this.isDucking = active;
-      this.h = active ? 34 : 64;
-      if (active) this.y = GROUND_Y - 34;
+      this.h = active ? MARIO_DUCK_H : MARIO_H;
+      if (active) this.y = groundY - MARIO_DUCK_H;
     }
   },
   update() {
-    this.x = Math.min(130, virtualWidth * 0.16);
+    this.x = Math.min(110, virtualWidth * 0.13);
     this.vy += this.gravity;
     this.y += this.vy;
-    if (this.y + this.h >= GROUND_Y) {
-      this.y = GROUND_Y - this.h;
+    if (this.y + this.h >= groundY) {
+      this.y = groundY - this.h;
       this.vy = 0;
       this.jumpsLeft = 2;
     }
-    this.runFrame += 0.25;
+    this.runFrame += 0.22;
   },
   draw() {
     ctx.save();
@@ -392,24 +454,24 @@ const mario = {
     const overallColor = isStar ? '#facc15' : (currentSkin === 'fire' ? '#dc2626' : '#2563eb');
 
     ctx.fillStyle = shirtColor;
-    ctx.fillRect(x + 5, y + (this.isDucking ? 5 : 22), w - 10, h - (this.isDucking ? 10 : 32));
+    ctx.fillRect(x + 6, y + (this.isDucking ? 6 : 28), w - 12, h - (this.isDucking ? 12 : 40));
     ctx.fillStyle = overallColor;
-    ctx.fillRect(x + 7, y + h - 20, w - 14, 13);
+    ctx.fillRect(x + 9, y + h - 26, w - 18, 17);
     ctx.fillStyle = '#facc15';
-    ctx.fillRect(x + 12, y + h - 17, 5, 5);
-    ctx.fillRect(x + 29, y + h - 17, 5, 5);
+    ctx.fillRect(x + 15, y + h - 22, 6, 6);
+    ctx.fillRect(x + 38, y + h - 22, 6, 6);
     ctx.fillStyle = '#fed7aa';
-    ctx.fillRect(x + 10, y + 5, 28, 19);
+    ctx.fillRect(x + 12, y + 7, 36, 24);
     ctx.fillStyle = '#000';
-    ctx.fillRect(x + 31, y + 9, 5, 6);
-    ctx.fillRect(x + 26, y + 18, 14, 4);
+    ctx.fillRect(x + 40, y + 12, 6, 8);
+    ctx.fillRect(x + 34, y + 23, 18, 5);
     ctx.fillStyle = shirtColor;
-    ctx.fillRect(x + 7, y, 34, 7);
-    ctx.fillRect(x + 14, y + 4, 31, 4);
+    ctx.fillRect(x + 9, y, 44, 9);
+    ctx.fillRect(x + 18, y + 5, 40, 5);
     ctx.fillStyle = '#78350f';
-    const step = Math.sin(this.runFrame) * 7;
-    ctx.fillRect(x + 7 + step, y + h - 7, 15, 7);
-    ctx.fillRect(x + 26 - step, y + h - 7, 15, 7);
+    const step = Math.sin(this.runFrame) * 9;
+    ctx.fillRect(x + 9 + step, y + h - 9, 20, 9);
+    ctx.fillRect(x + 33 - step, y + h - 9, 20, 9);
     ctx.restore();
   }
 };
@@ -419,52 +481,90 @@ let coinList = [];
 let starList = [];
 let shells = [];
 let particles = [];
-let clouds = [{x: 120, y: 75}, {x: 420, y: 115}, {x: 750, y: 70}];
-let hills = [{x: 100, r: 90}, {x: 440, r: 120}, {x: 800, r: 85}];
+let clouds = [{x: 90, y: 80}, {x: 320, y: 120}, {x: 620, y: 75}];
+let hills = [{x: 80, r: 85}, {x: 340, r: 110}, {x: 650, r: 80}];
+let nextSpawnFrame = 90;
+
+function formatTime(sec) {
+  const m = Math.floor(sec / 60).toString().padStart(2, '0');
+  const s = (sec % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+function updateDifficultyByTime() {
+  elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+  const badge = document.getElementById('phase-badge');
+
+  if (elapsedSeconds < 60) {
+    difficultyStage = 'EASY';
+    gameSpeed = 4.4 + (elapsedSeconds / 60) * 0.8;
+    badge.textContent = `🟢 FACILE • ${formatTime(elapsedSeconds)}`;
+    badge.style.color = '#4ade80';
+    badge.style.borderColor = '#4ade80';
+  } else if (elapsedSeconds < 180) {
+    difficultyStage = 'MEDIUM';
+    const progress = (elapsedSeconds - 60) / 120;
+    gameSpeed = 6.2 + progress * 2.0;
+    badge.textContent = `🟡 MOYEN • ${formatTime(elapsedSeconds)}`;
+    badge.style.color = '#facc15';
+    badge.style.borderColor = '#facc15';
+  } else {
+    difficultyStage = 'FAST';
+    const progress = Math.min((elapsedSeconds - 180) / 120, 1);
+    gameSpeed = 9.2 + progress * 3.0;
+    badge.textContent = `🔴 RAPIDE • ${formatTime(elapsedSeconds)}`;
+    badge.style.color = '#f87171';
+    badge.style.borderColor = '#f87171';
+  }
+}
 
 function spawnEntities() {
-  const spawnInterval = Math.max(52, Math.floor(92 - gameSpeed * 2));
-  if (frameCount % spawnInterval === 0) {
+  if (frameCount >= nextSpawnFrame) {
     const rand = Math.random();
-    if (rand < 0.24) {
-      obstacles.push({ type: 'goomba', x: virtualWidth + 30, y: GROUND_Y - 44, w: 44, h: 44 });
-    } else if (rand < 0.44) {
-      obstacles.push({ type: 'koopa', x: virtualWidth + 30, y: GROUND_Y - 54, w: 44, h: 54 });
-    } else if (rand < 0.64) {
-      const pipeH = Math.random() > 0.5 ? 68 : 92;
-      const hasPiranha = Math.random() > 0.45;
-      obstacles.push({
-        type: 'pipe',
-        x: virtualWidth + 30,
-        y: GROUND_Y - pipeH,
-        w: 60,
-        h: pipeH,
-        hasPiranha,
-        piranhaOffset: 0
-      });
-    } else if (rand < 0.82) {
-      obstacles.push({ type: 'bullet', x: virtualWidth + 30, y: GROUND_Y - 82, w: 56, h: 36 });
+
+    if (difficultyStage === 'EASY') {
+      if (rand < 0.65) {
+        obstacles.push({ type: 'goomba', x: virtualWidth + 30, y: groundY - 52, w: 52, h: 52 });
+      } else {
+        obstacles.push({ type: 'pipe', x: virtualWidth + 30, y: groundY - 68, w: 68, h: 68, hasPiranha: false, piranhaOffset: 0 });
+      }
+      nextSpawnFrame = frameCount + Math.floor(115 + Math.random() * 35);
+    } else if (difficultyStage === 'MEDIUM') {
+      if (rand < 0.35) {
+        obstacles.push({ type: 'goomba', x: virtualWidth + 30, y: groundY - 54, w: 54, h: 54 });
+      } else if (rand < 0.68) {
+        obstacles.push({ type: 'koopa', x: virtualWidth + 30, y: groundY - 68, w: 54, h: 68 });
+      } else {
+        const pipeH = Math.random() > 0.5 ? 74 : 96;
+        obstacles.push({ type: 'pipe', x: virtualWidth + 30, y: groundY - pipeH, w: 70, h: pipeH, hasPiranha: Math.random() > 0.45, piranhaOffset: 0 });
+      }
+      nextSpawnFrame = frameCount + Math.floor(85 + Math.random() * 25);
     } else {
-      obstacles.push({
-        type: 'fireball',
-        x: virtualWidth + 30,
-        y: GROUND_Y - 36,
-        w: 36,
-        h: 36,
-        vy: -13
-      });
+      if (rand < 0.22) {
+        obstacles.push({ type: 'goomba', x: virtualWidth + 30, y: groundY - 54, w: 54, h: 54 });
+      } else if (rand < 0.44) {
+        obstacles.push({ type: 'koopa', x: virtualWidth + 30, y: groundY - 68, w: 54, h: 68 });
+      } else if (rand < 0.66) {
+        const pipeH = Math.random() > 0.5 ? 78 : 102;
+        obstacles.push({ type: 'pipe', x: virtualWidth + 30, y: groundY - pipeH, w: 72, h: pipeH, hasPiranha: true, piranhaOffset: 0 });
+      } else if (rand < 0.84) {
+        obstacles.push({ type: 'bullet', x: virtualWidth + 30, y: groundY - 102, w: 68, h: 44 });
+      } else {
+        obstacles.push({ type: 'fireball', x: virtualWidth + 30, y: groundY - 44, w: 44, h: 44, vy: -13.5 });
+      }
+      nextSpawnFrame = frameCount + Math.floor(62 + Math.random() * 20);
     }
   }
 
   if (frameCount % 60 === 0) {
-    const baseY = GROUND_Y - (Math.random() > 0.5 ? 145 : 55);
+    const baseY = groundY - (Math.random() > 0.5 ? 155 : 65);
     for (let i = 0; i < 3; i++) {
-      coinList.push({ x: virtualWidth + 30 + i * 42, y: baseY, r: 14 });
+      coinList.push({ x: virtualWidth + 30 + i * 48, y: baseY, r: 17 });
     }
   }
 
-  if (frameCount % 850 === 0) {
-    starList.push({ x: virtualWidth + 40, y: GROUND_Y - 165, r: 18 });
+  if (frameCount % 750 === 0 && frameCount > 0) {
+    starList.push({ x: virtualWidth + 40, y: groundY - 175, r: 22 });
   }
 }
 
@@ -481,7 +581,7 @@ function createBurst(x, y, color) {
 }
 
 function drawBackground() {
-  ctx.clearRect(0, 0, virtualWidth, VIRTUAL_HEIGHT);
+  ctx.clearRect(0, 0, virtualWidth, virtualHeight);
   ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
   clouds.forEach(c => {
     c.x -= gameSpeed * 0.2;
@@ -498,20 +598,20 @@ function drawBackground() {
     if (h.x < -160) h.x = virtualWidth + 140;
     ctx.fillStyle = '#16a34a';
     ctx.beginPath();
-    ctx.arc(h.x, GROUND_Y, h.r, Math.PI, 0);
+    ctx.arc(h.x, groundY, h.r, Math.PI, 0);
     ctx.fill();
   });
 
   ctx.fillStyle = '#b45309';
-  ctx.fillRect(0, GROUND_Y, virtualWidth, VIRTUAL_HEIGHT - GROUND_Y);
+  ctx.fillRect(0, groundY, virtualWidth, virtualHeight - groundY);
   ctx.fillStyle = '#22c55e';
-  ctx.fillRect(0, GROUND_Y, virtualWidth, 14);
+  ctx.fillRect(0, groundY, virtualWidth, 16);
   ctx.strokeStyle = '#78350f';
   ctx.lineWidth = 2;
-  const offset = (frameCount * gameSpeed) % 44;
-  for (let x = -offset; x < virtualWidth; x += 44) {
-    ctx.strokeRect(x, GROUND_Y + 14, 44, 34);
-    ctx.strokeRect(x - 22, GROUND_Y + 48, 44, 38);
+  const offset = (frameCount * gameSpeed) % 48;
+  for (let x = -offset; x < virtualWidth; x += 48) {
+    ctx.strokeRect(x, groundY + 16, 48, 34);
+    ctx.strokeRect(x - 24, groundY + 50, 48, 38);
   }
 }
 
@@ -545,7 +645,7 @@ function updateAndDrawEntities() {
     const s = starList[i];
     s.x -= gameSpeed * 0.9;
     s.y += Math.sin(frameCount * 0.1) * 1.8;
-    drawStar(s.x, s.y, 5, 18, 8);
+    drawStar(s.x, s.y, 5, 22, 10);
 
     if (mario.x < s.x + s.r && mario.x + mario.w > s.x - s.r &&
         mario.y < s.y + s.r && mario.y + mario.h > s.y - s.r) {
@@ -568,7 +668,7 @@ function updateAndDrawEntities() {
     ctx.ellipse(c.x, c.y, c.r * Math.abs(Math.cos(frameCount * 0.1)), c.r, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.strokeStyle = '#ca8a04';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 2.5;
     ctx.stroke();
 
     if (mario.x < c.x + c.r && mario.x + mario.w > c.x - c.r &&
@@ -588,21 +688,21 @@ function updateAndDrawEntities() {
     sh.x += 13;
     ctx.fillStyle = '#16a34a';
     ctx.beginPath();
-    ctx.arc(sh.x + 18, sh.y + 16, 16, Math.PI, 0);
+    ctx.arc(sh.x + 22, sh.y + 20, 20, Math.PI, 0);
     ctx.fill();
     ctx.fillStyle = '#fef08a';
-    ctx.fillRect(sh.x + 2, sh.y + 16, 32, 8);
-    if (sh.x > virtualWidth + 50) shells.splice(i, 1);
+    ctx.fillRect(sh.x + 2, sh.y + 20, 40, 10);
+    if (sh.x > virtualWidth + 60) shells.splice(i, 1);
   }
 
   for (let i = obstacles.length - 1; i >= 0; i--) {
     const o = obstacles[i];
-    o.x -= (o.type === 'bullet' ? gameSpeed * 1.3 : gameSpeed);
+    o.x -= (o.type === 'bullet' ? gameSpeed * 1.22 : gameSpeed);
 
     let hitByShell = false;
     for (let j = shells.length - 1; j >= 0; j--) {
       const sh = shells[j];
-      if (sh.x < o.x + o.w && sh.x + 36 > o.x && sh.y < o.y + o.h && sh.y + 24 > o.y) {
+      if (sh.x < o.x + o.w && sh.x + 44 > o.x && sh.y < o.y + o.h && sh.y + 30 > o.y) {
         score += 200;
         playSound('stomp');
         createBurst(o.x + o.w / 2, o.y + o.h / 2, '#22c55e');
@@ -618,85 +718,85 @@ function updateAndDrawEntities() {
 
     if (o.type === 'pipe') {
       if (o.hasPiranha) {
-        o.piranhaOffset = Math.max(0, Math.sin(frameCount * 0.06) * 38);
+        o.piranhaOffset = Math.max(0, Math.sin(frameCount * 0.055) * 42);
         if (o.piranhaOffset > 4) {
           const py = o.y - o.piranhaOffset;
           ctx.fillStyle = '#15803d';
-          ctx.fillRect(o.x + 26, py + 20, 8, o.piranhaOffset);
+          ctx.fillRect(o.x + 31, py + 24, 10, o.piranhaOffset);
           ctx.fillStyle = '#dc2626';
           ctx.beginPath();
-          ctx.arc(o.x + 30, py + 14, 15, 0, Math.PI * 2);
+          ctx.arc(o.x + 36, py + 16, 18, 0, Math.PI * 2);
           ctx.fill();
           ctx.fillStyle = '#fff';
           ctx.beginPath();
-          ctx.arc(o.x + 24, py + 10, 3, 0, Math.PI * 2);
-          ctx.arc(o.x + 35, py + 14, 3, 0, Math.PI * 2);
+          ctx.arc(o.x + 29, py + 12, 3.5, 0, Math.PI * 2);
+          ctx.arc(o.x + 42, py + 16, 3.5, 0, Math.PI * 2);
           ctx.fill();
           effectiveY = py;
           effectiveH = o.h + o.piranhaOffset;
         }
       }
       ctx.fillStyle = '#16a34a';
-      ctx.fillRect(o.x + 5, o.y + 20, o.w - 10, o.h - 20);
-      ctx.fillRect(o.x, o.y, o.w, 20);
+      ctx.fillRect(o.x + 6, o.y + 24, o.w - 12, o.h - 24);
+      ctx.fillRect(o.x, o.y, o.w, 24);
       ctx.strokeStyle = '#052e16';
       ctx.lineWidth = 3;
-      ctx.strokeRect(o.x + 5, o.y + 20, o.w - 10, o.h - 20);
-      ctx.strokeRect(o.x, o.y, o.w, 20);
+      ctx.strokeRect(o.x + 6, o.y + 24, o.w - 12, o.h - 24);
+      ctx.strokeRect(o.x, o.y, o.w, 24);
     } else if (o.type === 'goomba') {
       ctx.fillStyle = '#92400e';
       ctx.beginPath();
-      ctx.arc(o.x + o.w / 2, o.y + 22, 22, Math.PI, 0);
+      ctx.arc(o.x + o.w / 2, o.y + 27, 26, Math.PI, 0);
       ctx.fill();
       ctx.fillStyle = '#fde68a';
-      ctx.fillRect(o.x + 12, o.y + 22, 20, 15);
+      ctx.fillRect(o.x + 14, o.y + 27, 25, 17);
       ctx.fillStyle = '#000';
-      ctx.fillRect(o.x + 14, o.y + 12, 5, 8);
-      ctx.fillRect(o.x + 25, o.y + 12, 5, 8);
-      ctx.fillRect(o.x + 6, o.y + 37, 13, 7);
-      ctx.fillRect(o.x + 25, o.y + 37, 13, 7);
+      ctx.fillRect(o.x + 17, o.y + 15, 6, 10);
+      ctx.fillRect(o.x + 30, o.y + 15, 6, 10);
+      ctx.fillRect(o.x + 7, o.y + 44, 15, 8);
+      ctx.fillRect(o.x + 30, o.y + 44, 15, 8);
     } else if (o.type === 'koopa') {
       ctx.fillStyle = '#facc15';
-      ctx.fillRect(o.x + 4, o.y + 4, 16, 18);
+      ctx.fillRect(o.x + 5, o.y + 5, 20, 22);
       ctx.fillStyle = '#000';
-      ctx.fillRect(o.x + 7, o.y + 8, 4, 6);
+      ctx.fillRect(o.x + 9, o.y + 10, 5, 7);
       ctx.fillStyle = '#16a34a';
       ctx.beginPath();
-      ctx.arc(o.x + 26, o.y + 32, 18, Math.PI, 0);
+      ctx.arc(o.x + 32, o.y + 40, 22, Math.PI, 0);
       ctx.fill();
       ctx.fillStyle = '#fef08a';
-      ctx.fillRect(o.x + 10, o.y + 32, 32, 12);
+      ctx.fillRect(o.x + 12, o.y + 40, 40, 15);
       ctx.fillStyle = '#facc15';
-      ctx.fillRect(o.x + 12, o.y + 44, 10, 10);
-      ctx.fillRect(o.x + 28, o.y + 44, 10, 10);
+      ctx.fillRect(o.x + 15, o.y + 55, 12, 13);
+      ctx.fillRect(o.x + 35, o.y + 55, 12, 13);
     } else if (o.type === 'bullet') {
       ctx.fillStyle = '#1e293b';
       ctx.beginPath();
-      ctx.arc(o.x + 18, o.y + 18, 18, Math.PI * 0.5, Math.PI * 1.5);
-      ctx.fillRect(o.x + 18, o.y, 38, 36);
+      ctx.arc(o.x + 22, o.y + 22, 22, Math.PI * 0.5, Math.PI * 1.5);
+      ctx.fillRect(o.x + 22, o.y, 46, 44);
       ctx.fill();
       ctx.fillStyle = '#fff';
       ctx.beginPath();
-      ctx.arc(o.x + 16, o.y + 12, 6, 0, Math.PI * 2);
+      ctx.arc(o.x + 19, o.y + 15, 7, 0, Math.PI * 2);
       ctx.fill();
     } else if (o.type === 'fireball') {
       o.vy += 0.55;
       o.y += o.vy;
-      if (o.y + o.h >= GROUND_Y) {
-        o.y = GROUND_Y - o.h;
-        o.vy = -12.5;
+      if (o.y + o.h >= groundY) {
+        o.y = groundY - o.h;
+        o.vy = -13;
       }
       ctx.fillStyle = '#f97316';
       ctx.beginPath();
-      ctx.arc(o.x + 18, o.y + 18, 18, 0, Math.PI * 2);
+      ctx.arc(o.x + 22, o.y + 22, 22, 0, Math.PI * 2);
       ctx.fill();
       ctx.fillStyle = '#facc15';
       ctx.beginPath();
-      ctx.arc(o.x + 18, o.y + 18, 10, 0, Math.PI * 2);
+      ctx.arc(o.x + 22, o.y + 22, 12, 0, Math.PI * 2);
       ctx.fill();
     }
 
-    const pad = 7;
+    const pad = 10;
     const hit = mario.x + pad < o.x + o.w - pad &&
                 mario.x + mario.w - pad > o.x + pad &&
                 mario.y + pad < effectiveY + effectiveH - pad &&
@@ -709,13 +809,13 @@ function updateAndDrawEntities() {
         createBurst(o.x + o.w / 2, o.y + o.h / 2, '#facc15');
         obstacles.splice(i, 1);
         continue;
-      } else if ((o.type === 'goomba' || o.type === 'koopa') && mario.vy > 0 && mario.y + mario.h - mario.vy <= o.y + 24) {
-        mario.vy = -11.5;
+      } else if ((o.type === 'goomba' || o.type === 'koopa') && mario.vy > 0 && mario.y + mario.h - mario.vy <= o.y + 32) {
+        mario.vy = -12.5;
         score += 100;
         playSound('stomp');
-        createBurst(o.x + 22, o.y + 22, '#f97316');
+        createBurst(o.x + 26, o.y + 26, '#f97316');
         if (o.type === 'koopa') {
-          shells.push({ x: o.x, y: GROUND_Y - 24 });
+          shells.push({ x: o.x, y: groundY - 30 });
         }
         obstacles.splice(i, 1);
         continue;
@@ -724,7 +824,7 @@ function updateAndDrawEntities() {
         return;
       }
     }
-    if (o.x < -80) obstacles.splice(i, 1);
+    if (o.x < -90) obstacles.splice(i, 1);
   }
 
   for (let i = particles.length - 1; i >= 0; i--) {
@@ -733,7 +833,7 @@ function updateAndDrawEntities() {
     p.y += p.vy;
     p.life--;
     ctx.fillStyle = p.color;
-    ctx.fillRect(p.x, p.y, 6, 6);
+    ctx.fillRect(p.x, p.y, 7, 7);
     if (p.life <= 0) particles.splice(i, 1);
   }
 }
@@ -741,8 +841,9 @@ function updateAndDrawEntities() {
 function gameLoop() {
   if (gameState !== 'PLAYING') return;
   frameCount++;
+  updateDifficultyByTime();
+
   if (frameCount % 6 === 0) score += (starTimer > 0 ? 2 : 1);
-  if (frameCount % 320 === 0 && gameSpeed < 14.5) gameSpeed += 0.4;
 
   if (starTimer > 0) {
     starTimer--;
@@ -767,18 +868,22 @@ function startGame() {
   gameState = 'PLAYING';
   score = 0;
   coins = 0;
-  gameSpeed = 6.5;
+  gameSpeed = 4.4;
   frameCount = 0;
+  nextSpawnFrame = 80;
   starTimer = 0;
+  startTime = Date.now();
+  elapsedSeconds = 0;
+  difficultyStage = 'EASY';
   obstacles = [];
   coinList = [];
   starList = [];
   shells = [];
   particles = [];
-  mario.y = GROUND_Y - 64;
+  mario.y = groundY - MARIO_H;
   mario.vy = 0;
   mario.isDucking = false;
-  mario.h = 64;
+  mario.h = MARIO_H;
 
   document.getElementById('star-banner').classList.add('hidden');
   document.getElementById('start-screen').classList.add('hidden');
@@ -795,8 +900,8 @@ function triggerGameOver() {
     document.getElementById('best-score').textContent = bestScore;
   }
   document.getElementById('final-score').textContent = score;
+  document.getElementById('final-time').textContent = formatTime(elapsedSeconds);
   document.getElementById('final-best').textContent = bestScore;
-  document.getElementById('final-streak').textContent = currentStreak;
   document.getElementById('gameover-screen').classList.remove('hidden');
 }
 
@@ -806,7 +911,7 @@ function shareAndUnlock() {
   localStorage.setItem('mario_fire_unlocked', 'true');
   localStorage.setItem('mario_skin', 'fire');
   updateSkinUI();
-  const text = encodeURIComponent(`🍄 J'ai fait ${score} points sur Super Mario Run ! Peux-tu battre mon record ? Joue ici : ${window.location.href}`);
+  const text = encodeURIComponent(`🍄 J'ai fait ${score} points (${formatTime(elapsedSeconds)}) sur Super Mario Run ! Peux-tu battre mon record ? Joue ici : ${window.location.href}`);
   window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
 }
 
